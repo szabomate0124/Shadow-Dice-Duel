@@ -1,0 +1,110 @@
+package com.example.dicegame;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import java.util.Random;
+
+public class MainActivity extends AppCompatActivity {
+
+    ImageView whiteDice, blackDice;
+    TextView scoreText, shadowLevelText;
+    Button rollButton;
+
+    Random random = new Random();
+
+    int score = 0;
+    int shadowLevel = 0;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        // Edge-to-edge padding
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        // UI elemek összekötése
+        whiteDice = findViewById(R.id.whiteDice);
+        blackDice = findViewById(R.id.blackDice);
+        scoreText = findViewById(R.id.scoreText);
+        shadowLevelText = findViewById(R.id.shadowLevelText);
+        rollButton = findViewById(R.id.rollButton);
+
+        // Gomb esemény
+        rollButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rollDice();
+            }
+        });
+    }
+
+    private void rollDice() {
+        int white = random.nextInt(6) + 1;
+        int black = random.nextInt(6) + 1;
+
+
+
+        Toast messageToast;
+
+        // Speciális Carpe Diem eset
+        if ((white == 1 && black == 6) || (white == 6 && black == 1)) {
+            if (black > white) {
+                shadowLevel += 4;
+                messageToast = Toast.makeText(this, "Carpe Diem! Fekete győz, Árnyékszint +4", Toast.LENGTH_LONG);
+            } else {
+                score += 4;
+                messageToast = Toast.makeText(this, "Carpe Diem! +4 pont", Toast.LENGTH_LONG);
+            }
+        }
+        // Dupla
+        else if (white == black) {
+            score += 2;
+            messageToast = Toast.makeText(this, "Dupla Dobás! +2 pont", Toast.LENGTH_SHORT);
+        }
+        // Fény győz
+        else if (white > black) {
+            score += 1;
+            messageToast = Toast.makeText(this, "Reménysugár! +1 pont", Toast.LENGTH_SHORT);
+        }
+        // Árnyék győz
+        else {
+            shadowLevel += 1;
+            messageToast = Toast.makeText(this, "Sötét Ómen! Árnyékszint +1", Toast.LENGTH_SHORT);
+        }
+
+        messageToast.show();
+        updateUI();
+
+        if (shadowLevel >= 6) {
+            gameOver();
+        }
+    }
+
+    private void updateUI() {
+        scoreText.setText("Pontszám: " + score);
+        shadowLevelText.setText("Árnyékszint: " + shadowLevel);
+    }
+
+    private void gameOver() {
+        Toast.makeText(this, "A Sötétség elnyelt! Játék vége.", Toast.LENGTH_LONG).show();
+        rollButton.setEnabled(false);
+    }
+
+}
